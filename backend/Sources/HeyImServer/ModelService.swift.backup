@@ -1,0 +1,264 @@
+import Foundation
+import CoreML
+import StableDiffusion
+
+/// Model type for generation mode
+enum ModelType: String, Codable {
+    case fast = "fast"        // RealisticVision v5.1 - portraits, 5-9s
+    case quality = "quality"   // Juggernaut XL - versatile, 15-25s
+}
+
+/// Protocol to abstract different pipeline types
+protocol DiffusionPipeline {
+    func generateImages(
+        configuration: StableDiffusionPipeline.Configuration,
+        progressHandler: (StableDiffusionPipeline.Progress) -> Bool
+    ) throws -> [CGImage?]
+}
+
+extension StableDiffusionPipeline: DiffusionPipeline {}
+extension StableDiffusionXLPipeline: DiffusionPipeline {}
+
+/// Service to manage Stable Diffusion pipelines
+actor ModelService {
+    static let shared = ModelService()
+    
+    // Dual pipeline support - using protocol to support both SD 1.5 and SDXL
+    private var realisticVisionPipeline: StableDiffusionPipeline?
+    private var juggernautXLPipeline: StableDiffusionXLPipeline?
+    
+    private var isLoading = false
+    private var isGenerating = false
+    private var currentModelType: ModelType?
+    
+    private init() {}
+    
+    /// Load specific model pipeline
+    func loadModel(_ type: ModelType) async throws {
+        // Check if already loaded
+        switch type {
+        case .fast:
+            if realisticVisionPipeline != nil {
+                print("✅ Fast Mode (RealisticVision) already loaded")
+                return
+            }
+        case .quality:
+            if juggernautXLPipeline != nil {
+                print("✅ Quality Mode (Juggernaut XL) already loaded")
+                return
+            }
+        }
+        
+        // Prevent concurrent loading
+        guard !isLoading else {
+            throw ModelServiceError.alreadyLoading
+        }
+        
+        isLoading = true
+        defer { isLoading = false }
+        
+        let (modelPath, modelName) = getModelPath(for: type)
+        let resourceURL = URL(fileURLWithPath: modelPath)
+        
+        print("🔄 Loading \(modelName) from: \(modelPath)")
+        
+        do {
+            let config = MLModelConfiguration()
+            config.computeUnits = .cpuAndNeuralEngine
+            
+            print("  Initializing pipeline...")
+            if #available(macOS 14.0, *) {
+                switch type {
+                case .fast:
+                    // SD 1.5 pipeline
+                    let pipeline = try StableDiffusionPipeline(
+                        resourcesAt: resourceURL,
+                        controlNet: [],
+                        configuration: config,
+                        disableSafety: true,
+                        reduceMemory: false
+                    )
+                    self.realisticVisionPipeline = pipeline
+                    print("✅ Fast Mode loaded (RealisticVision v5.1, SD 1.5)")
+                    
+                case .quality:
+                    // SDXL pipeline
+                    let pipeline = try StableDiffusionXLPipeline(
+                        resourcesAt: resourceURL,
+                        configuration: config,
+                        reduceMemory: false
+                    )
+                    self.juggernautXLPipeline = pipeline
+                    print("✅ Quality Mode loaded (Juggernaut XL v9, SDXL)")
+                }
+                
+                self.currentModelType = type
+                
+            } else {
+                throw ModelServiceError.loadFailed("macOS 14+ required")
+            }
+            
+        } catch {
+            print("❌ Failed to load pipeline: \(error)")
+            throw ModelServiceError.loadFailed(error.localizedDescription)
+        }
+    }
+    
+    /// Load default model (Quality Mode)
+    func loadModels() async throws {
+        try await loadModel(.quality)
+    }
+    
+    /// Get model path for type
+    private func getModelPath(for type: ModelType) -> (path: String, name: String) {
+        switch type {
+        case .fast:
+            return (
+                "/Users/mac/HeyIm/models/RealisticVision_v51_split-einsum",
+                "Fast Mode (RealisticVision v5.1)"
+            )
+        case .quality:
+            return (
+                "/Users/mac/HeyIm/models/Juggernaut_XL_v9_split-einsum",
+                "Quality Mode (Juggernaut XL v9) - Slow on M2, recommend Fast Mode"
+            )
+        }
+    }
+    
+    /// Get model status
+    func getStatus() -> ModelStatus {
+        if realisticVisionPipeline != nil || juggernautXLPipeline != nil {
+            return .loaded
+        } else if isLoading {
+            return .loading
+        } else {
+            return .notLoaded
+        }
+    }
+    
+    /// Check if models are loaded
+    func areModelsLoaded() -> Bool {
+        return realisticVisionPipeline != nil || juggernautXLPipeline != nil
+    }
+    
+    /// Get current model type
+    func getCurrentModelType() -> ModelType? {
+        return currentModelType
+    }
+    
+    /// Check if specific model is loaded
+    func isModelLoaded(_ type: ModelType) -> Bool {
+        switch type {
+        case .fast:
+            return realisticVisionPipeline != nil
+        case .quality:
+            return juggernautXLPipeline != nil
+        }
+    }
+    
+    /// Check if currently generating
+    func isCurrentlyGenerating() -> Bool {
+        return isGenerating
+    }
+    
+    /// Generate image from text prompt with model selection
+    func generateImage(
+        prompt: String,
+        negativePrompt: String = "",
+        steps: Int = 30,
+        guidanceScale: Float = 7.5,
+        seed: UInt32? = nil,
+        modelType: ModelType = .quality  // Default to Quality Mode
+    ) async throws -> CGImage {
+        print("🎬 Starting generation with \(modelType.rawValue) mode...")
+        
+        // Load model if not already loaded
+        try await loadModel(modelType)
+        
+        guard !isGenerating else {
+            print("   ❌ Already generating!")
+            throw ModelServiceError.generationFailed("Already generating")
+        }
+        
+        isGenerating = true
+        defer { 
+            isGenerating = false
+            print("   ✓ Generation flag cleared")
+        }
+        
+        print("   Prompt: \(prompt)")
+        print("   Negative: \(negativePrompt)")
+        print("   Steps: \(steps), CFG: \(guidanceScale)")
+        
+        do {
+            let actualSeed = seed ?? UInt32.random(in: 0...UInt32.max)
+            
+            var pipelineConfig = StableDiffusionPipeline.Configuration(prompt: prompt)
+            pipelineConfig.negativePrompt = negativePrompt
+            pipelineConfig.imageCount = 1
+            pipelineConfig.stepCount = steps
+            pipelineConfig.seed = actualSeed
+            pipelineConfig.guidanceScale = Float(guidanceScale)
+            pipelineConfig.disableSafety = true
+            pipelineConfig.schedulerType = .dpmSolverMultistepScheduler
+            
+            print("   Calling pipeline.generateImages()...")
+            
+            let images: [CGImage?]
+            switch modelType {
+            case .fast:
+                guard let pipeline = realisticVisionPipeline else {
+                    throw ModelServiceError.generationFailed("Fast Mode pipeline not loaded")
+                }
+                images = try pipeline.generateImages(
+                    configuration: pipelineConfig,
+                    progressHandler: { progress in
+                        if progress.stepCount > 0 && progress.step % 5 == 0 {
+                            print("   Step \(progress.step)/\(progress.stepCount)")
+                        }
+                        return true
+                    }
+                )
+                
+            case .quality:
+                guard let pipeline = juggernautXLPipeline else {
+                    throw ModelServiceError.generationFailed("Quality Mode pipeline not loaded")
+                }
+                images = try pipeline.generateImages(
+                    configuration: pipelineConfig,
+                    progressHandler: { progress in
+                        if progress.stepCount > 0 && progress.step % 5 == 0 {
+                            print("   Step \(progress.step)/\(progress.stepCount)")
+                        }
+                        return true
+                    }
+                )
+            }
+            
+            guard let firstImage = images.first, let image = firstImage else {
+                print("   ❌ No image generated")
+                throw ModelServiceError.generationFailed("No image generated")
+            }
+            
+            print("✅ Generation completed!")
+            return image
+            
+        } catch {
+            print("❌ Generation error: \(error)")
+            throw ModelServiceError.generationFailed("Generation failed: \(error.localizedDescription)")
+        }
+    }
+}
+
+enum ModelStatus: String, Codable {
+    case notLoaded = "not_loaded"
+    case loading = "loading"
+    case loaded = "loaded"
+}
+
+enum ModelServiceError: Error {
+    case alreadyLoading
+    case loadFailed(String)
+    case generationFailed(String)
+    case noImagesGenerated
+}

@@ -1,0 +1,79 @@
+# Cloudflare Tunnel Configuration for HeyIm
+# Add this section to your existing ~/.cloudflared/config.yml
+
+# INSTRUCTIONS:
+# 1. Backup current config:
+#    cp ~/.cloudflared/config.yml ~/.cloudflared/config.yml.backup
+#
+# 2. Add the HeyIm ingress rule BEFORE the catch-all (http_status:404)
+#
+# 3. Create DNS record:
+#    cloudflared tunnel route dns aithink heyim.truyenthong.edu.vn
+#
+# 4. Restart cloudflared:
+#    sudo launchctl unload /Library/LaunchDaemons/com.cloudflare.cloudflared.plist
+#    sudo launchctl load /Library/LaunchDaemons/com.cloudflare.cloudflared.plist
+
+# ============================================
+# HeyIm Ingress Rule (add to your config.yml)
+# ============================================
+
+  # HeyIm AI Image Generation (port 5859)
+  - hostname: heyim.truyenthong.edu.vn
+    service: http://127.0.0.1:5859
+    originRequest:
+      noTLSVerify: false
+      connectTimeout: 120s        # Long timeout for image generation
+      http2Origin: true
+      disableChunkedEncoding: false
+      noHappyEyeballs: false
+      keepAliveTimeout: 90s
+      keepAliveConnections: 100
+
+# ============================================
+# Full Example Config (for reference)
+# ============================================
+
+# tunnel: <your-tunnel-id>
+# credentials-file: /Users/mac/.cloudflared/<tunnel-id>.json
+# 
+# ingress:
+#   # Existing services
+#   - hostname: aithink.truyenthong.edu.vn
+#     service: http://127.0.0.1:5173
+#     originRequest:
+#       ...
+#   
+#   - hostname: heytex.truyenthong.edu.vn
+#     service: http://127.0.0.1:5436
+#     originRequest:
+#       ...
+#   
+#   - hostname: macaulay2.truyenthong.edu.vn
+#     service: http://127.0.0.1:5657
+#     originRequest:
+#       ...
+#   
+#   # NEW: HeyIm service
+#   - hostname: heyim.truyenthong.edu.vn
+#     service: http://127.0.0.1:3000
+#     originRequest:
+#       noTLSVerify: false
+#       connectTimeout: 120s
+#       http2Origin: true
+#       keepAliveTimeout: 90s
+#       keepAliveConnections: 100
+#   
+#   # Catch-all (must be last)
+#   - service: http_status:404
+
+# ============================================
+# Notes:
+# ============================================
+#
+# - Frontend (port 3000) handles user traffic
+# - Backend (port 5858) is accessed internally by frontend
+# - No need to expose backend directly to internet
+# - Long connectTimeout (120s) because image generation takes 13-18s
+# - http2Origin enabled for better performance
+# - No conflicts with existing services (different port & hostname)
