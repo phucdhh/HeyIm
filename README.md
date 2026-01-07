@@ -1,4 +1,4 @@
-# HeyIm — Ứng dụng Web Tạo Hình Ảnh bằng AI
+# HeyIm — Ứng dụng Web tạo hình ảnh bằng AI
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Swift 5.8+](https://img.shields.io/badge/Swift-5.8+-orange.svg)](https://swift.org)
@@ -12,14 +12,14 @@ Website: https://heyim.truyenthong.edu.vn
 
 ## Tổng quan
 
-HeyIm sử dụng **RealisticVision v5.1** - mô hình Stable Diffusion 1.5 finetuned chuyên về chân dung và portrait photography, được tối ưu hoá cho Apple Neural Engine.
+HeyIm sử dụng **RealisticVision v5.1** - mô hình Stable Diffusion 1.5 finetuned chuyên về chân dung và portrait photography, được tối ưu hoá cho Apple Neural Engine. HeyIm có thể chạy hoàn toàn trên ANE và chỉ dùng một ít CPU, nên hầu như không ảnh hưởng gì đến hệ thống. Bạn có thể dùng GPU để chạy một AI khác mà không ảnh hưởng gì. Trong trường hợp cùng lúc chạy một ứng dụng nặng về xử lý CPU, một ứng dụng AI LLMs 100% GPU và HeyIm 100% ANE, thì Mac Mini M2 cũng chỉ lên cỡ 15-20W, và gần như không nóng máy.
 
 ## Tính năng chính
 
 - ⚡ **Tốc độ nhanh**: 8-10 giây mỗi ảnh
 - �� **Chất lượng cao**: Chuyên về portraits, faces, people
 - 🖼️ **Image-to-Image**: Upload và chỉnh sửa ảnh, thay đổi context/behavior
-- 🖥️ **Tối ưu M2**: Chạy hoàn toàn trên ANE
+- 🖥️ **Tối ưu M2**: Chạy hoàn toàn trên ANE, rất tiết kiệm điện
 - 🌐 **Giao diện web**: Next.js + TypeScript
 - �� **An toàn**: Xử lý local, không gửi data ra ngoài
 
@@ -27,13 +27,13 @@ HeyIm sử dụng **RealisticVision v5.1** - mô hình Stable Diffusion 1.5 fine
 
 **Mac Mini M2 (16GB - 24 GB RAM):**
 - Steps 20: ~7-8s
-- Steps 30: ~9-10s ⭐ Khuyến nghị
+- Steps 30: ~9-10s ⭐ Nên chọn
 - Steps 40: ~12-13s
 
 **Hardware Usage:**
-- ANE: 80-100% (UNet 1.6GB)
+- ANE: 80-100% (UNet 1.6GB, rất tiết kiệm điện)
 - CPU: 10-20%
-- GPU: 0%
+- GPU: 0% (Không cần sử dụng GPU)
 - RAM: ~4-5GB
 
 ## Quick Start
@@ -90,7 +90,7 @@ POST http://localhost:5858/api/generate
 GET http://localhost:5858/api/status
 ```
 
-## Prompting Tips
+## Prompting Tips (Cần nhập prompt bằng tiếng Anh)
 
 **Good prompts:**
 ```
