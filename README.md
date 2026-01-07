@@ -8,8 +8,6 @@
 
 Website: https://heyim.truyenthong.edu.vn
 
-**🎉 Status:** PRODUCTION READY!
-
 Ứng dụng web tạo hình ảnh AI tối ưu cho Apple Silicon (Mac Mini M2). Toàn bộ inference chạy native bằng Core ML + ANE (Neural Engine).
 
 ## Tổng quan
@@ -19,13 +17,15 @@ HeyIm sử dụng **RealisticVision v5.1** - mô hình Stable Diffusion 1.5 fine
 ## Tính năng chính
 
 - ⚡ **Tốc độ nhanh**: 8-10 giây mỗi ảnh
-- �� **Chất lượng cao**: Chuyên về portraits, faces, people- 🖼️ **Image-to-Image**: Upload và chỉnh sửa ảnh, thay đổi context/behavior- 🖥️ **Tối ưu M2**: Chạy hoàn toàn trên ANE
+- �� **Chất lượng cao**: Chuyên về portraits, faces, people
+- 🖼️ **Image-to-Image**: Upload và chỉnh sửa ảnh, thay đổi context/behavior
+- 🖥️ **Tối ưu M2**: Chạy hoàn toàn trên ANE
 - 🌐 **Giao diện web**: Next.js + TypeScript
 - �� **An toàn**: Xử lý local, không gửi data ra ngoài
 
 ## Performance
 
-**Mac Mini M2 base (16GB RAM):**
+**Mac Mini M2 (16GB - 24 GB RAM):**
 - Steps 20: ~7-8s
 - Steps 30: ~9-10s ⭐ Khuyến nghị
 - Steps 40: ~12-13s
