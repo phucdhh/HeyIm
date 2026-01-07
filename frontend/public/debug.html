@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeyIm Debug - localStorage Inspector</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .notice {
+            background: #dbeafe;
+            border-left: 4px solid #2563eb;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        button.danger {
+            background: #dc2626;
+        }
+        button.danger:hover {
+            background: #b91c1c;
+        }
+        .info-box {
+            background: #dbeafe;
+            border-left: 4px solid #2563eb;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .error-box {
+            background: #fee2e2;
+            border-left: 4px solid #dc2626;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success-box {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .image-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .image-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f9fafb;
+        }
+        .image-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .image-card .info {
+            padding: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        .stat {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #4338ca;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 HeyIm Debug Tool</h1>
+        <p class="subtitle">Inspect browser storage (IndexedDB + localStorage)</p>
+        
+        <div class="notice">
+            <strong>📢 Updated Storage System:</strong><br>
+            HeyIm now uses <strong>IndexedDB</strong> for efficient image storage (supports GB of data).<br>
+            Images are stored as Blobs (~30% smaller than base64).<br>
+            Old localStorage data will be automatically migrated on first load.
+        </div>
+
+        <div>
+            <button onclick="inspectIndexedDB()">📊 Inspect IndexedDB</button>
+            <button onclick="inspectStorage()">🗄️ Check localStorage (Legacy)</button>
+            <button onclick="validateImages()">✅ Validate Images</button>
+            <button onclick="clearIndexedDB()" class="danger">🗑️ Clear IndexedDB</button>
+            <button onclick="clearStorage()" class="danger">🗑️ Clear localStorage</button>
+        </div>
+
+        <div id="output"></div>
+        <div id="preview"></div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'heyim_history';
+        const DB_NAME = 'HeyImDB';
+        const STORE_NAME = 'images';
+
+        let db = null;
+
+        // Initialize IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                if (db) {
+                    resolve(db);
+                    return;
+                }
+                
+                const request = indexedDB.open(DB_NAME, 1);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+            });
+        }
+
+        async function inspectIndexedDB() {
+            const output = document.getElementById('output');
+            
+            try {
+                await initDB();
+                
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const countRequest = store.count();
+                
+                countRequest.onsuccess = async () => {
+                    const count = countRequest.result;
+                    
+                    // Get all records
+                    const getAllRequest = store.getAll();
+                    getAllRequest.onsuccess = async () => {
+                        const records = getAllRequest.result;
+                        
+                        let totalSize = 0;
+                        records.forEach(record => {
+                            totalSize += record.imageBlob.size;
+                        });
+                        
+                        // Get storage estimate
+                        let storageInfo = '';
+                        if ('storage' in navigator && 'estimate' in navigator.storage) {
+                            const estimate = await navigator.storage.estimate();
+                            const usageMB = (estimate.usage / 1024 / 1024).toFixed(2);
+                            const quotaGB = (estimate.quota / 1024 / 1024 / 1024).toFixed(2);
+                            storageInfo = `<div>Total browser storage: <strong>${usageMB} MB / ${quotaGB} GB</strong></div>`;
+                        }
+                        
+                        let html = '<div class="info-box">';
+                        html += `<div style="margin-bottom:10px">`;
+                        html += `<span class="stat">${count} images</span>`;
+                        html += `<span class="stat">${(totalSize / 1024 / 1024).toFixed(2)} MB</span>`;
+                        html += `</div>`;
+                        html += storageInfo;
+                        html += '</div>';
+                        
+                        html += '<pre>' + JSON.stringify(records.map(record => ({
+                            id: record.id,
+                            prompt: record.prompt?.substring(0, 50) + '...',
+                            blobSize: (record.imageBlob.size / 1024).toFixed(1) + ' KB',
+                            timestamp: new Date(record.timestamp).toLocaleString(),
+                        })), null, 2) + '</pre>';
+                        
+                        output.innerHTML = html;
+                    };
+                };
+            } catch (error) {
+                output.innerHTML = `<div class="error-box">Error accessing IndexedDB: ${error.message}<br>Database might not exist yet (no images generated).</div>`;
+            }
+        }
+
+        function inspectStorage() {
+            const output = document.getElementById('output');
+            const stored = localStorage.getItem(STORAGE_KEY);
+            
+            if (!stored) {
+                output.innerHTML = '<div class="info-box">✅ No legacy localStorage data found.<br>All data is now in IndexedDB.</div>';
+                return;
+            }
+
+            try {
+                const data = JSON.parse(stored);
+                const totalSize = new Blob([stored]).size;
+                
+                let html = '<div class="info-box">';
+                html += `<div style="margin-bottom:10px">`;
+                html += `<span class="stat">${data.length} images</span>`;
+                html += `<span class="stat">${(totalSize / 1024).toFixed(2)} KB</span>`;
+                html += `</div>`;
+                
+                const validCount = data.filter(img => img.imageData && img.imageData.length > 100).length;
+                const invalidCount = data.length - validCount;
+                
+                html += `<div>Valid images: <strong>${validCount}</strong></div>`;
+                if (invalidCount > 0) {
+                    html += `<div style="color:#dc2626">Invalid/corrupted images: <strong>${invalidCount}</strong></div>`;
+                }
+                html += '</div>';
+                
+                html += '<pre>' + JSON.stringify(data.map((img, idx) => ({
+                    index: idx,
+                    id: img.id,
+                    prompt: img.prompt?.substring(0, 50) + '...',
+                    hasImageData: !!img.imageData,
+                    imageDataLength: img.imageData?.length || 0,
+                    timestamp: new Date(img.timestamp).toLocaleString(),
+                })), null, 2) + '</pre>';
+                
+                output.innerHTML = html;
+            } catch (error) {
+                output.innerHTML = `<div class="error-box">Error parsing data: ${error.message}</div>`;
+            }
+        }
+
+        async function validateImages() {
+            const output = document.getElementById('output');
+            const preview = document.getElementById('preview');
+            
+            try {
+                await initDB();
+                
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+                
+                request.onsuccess = async () => {
+                    const records = request.result;
+                    
+                    if (records.length === 0) {
+                        output.innerHTML = '<div class="info-box">No images in IndexedDB yet.</div>';
+                        preview.innerHTML = '';
+                        return;
+                    }
+                    
+                    let previewHtml = '<div class="image-preview">';
+                    let validCount = 0;
+                    let errorCount = 0;
+
+                    for (let idx = 0; idx < records.length; idx++) {
+                        const record = records[idx];
+                        
+                        if (!record.imageBlob || record.imageBlob.size === 0) {
+                            errorCount++;
+                            previewHtml += `
+                                <div class="image-card">
+                                    <div style="height:150px;display:flex;align-items:center;justify-center;background:#fee2e2;color:#dc2626">
+                                        ❌ No data
+                                    </div>
+                                    <div class="info">Image ${idx + 1}</div>
+                                </div>
+                            `;
+                            continue;
+                        }
+
+                        validCount++;
+                        const imageUrl = URL.createObjectURL(record.imageBlob);
+                        previewHtml += `
+                            <div class="image-card">
+                                <img src="${imageUrl}" 
+                                     alt="${record.prompt}"
+                                     onerror="this.parentElement.innerHTML='<div style=\\'height:150px;display:flex;align-items:center;justify-center;background:#fee2e2;color:#dc2626\\'>❌ Load failed</div>'">
+                                <div class="info">
+                                    <strong>Image ${idx + 1}</strong><br>
+                                    ${(record.imageBlob.size / 1024).toFixed(1)} KB
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    previewHtml += '</div>';
+                    
+                    let summaryHtml = '<div class="info-box">';
+                    summaryHtml += `<span class="stat">✅ ${validCount} valid</span>`;
+                    if (errorCount > 0) {
+                        summaryHtml += `<span class="stat" style="background:#fee2e2;color:#dc2626">❌ ${errorCount} errors</span>`;
+                    }
+                    summaryHtml += '</div>';
+                    
+                    output.innerHTML = summaryHtml;
+                    preview.innerHTML = previewHtml;
+                };
+            } catch (error) {
+                output.innerHTML = `<div class="error-box">Error: ${error.message}</div>`;
+            }
+        }
+
+        function fixCorruptedData() {
+            const output = document.getElementById('output');
+            const preview = document.getElementById('preview');
+            const stored = localStorage.getItem(STORAGE_KEY);
+            
+            if (!stored) {
+                output.innerHTML = '<div class="info-box">No history data found.</div>';
+                return;
+            }
+
+            try {
+                const data = JSON.parse(stored);
+                let previewHtml = '<div class="image-preview">';
+                let validCount = 0;
+                let errorCount = 0;
+
+                data.forEach((img, idx) => {
+                    if (!img.imageData || img.imageData.length < 100) {
+                        errorCount++;
+                        previewHtml += `
+                            <div class="image-card">
+                                <div style="height:150px;display:flex;align-items:center;justify-center;background:#fee2e2;color:#dc2626">
+                                    ❌ No data
+                                </div>
+                                <div class="info">Image ${idx + 1}</div>
+                            </div>
+                        `;
+                        return;
+                    }
+
+        async function clearIndexedDB() {
+            if (!confirm('⚠️ Clear legacy localStorage data? (This is safe, data is now in IndexedDB)')) {
+                return;
+            }
+            
+            localStorage.removeItem(STORAGE_KEY);
+            document.getElementById('output').innerHTML = '<div class="success-box">✅ localStorage cleared!</div>';
+            document.getElementById('preview').innerHTML = '';
+        }
+
+        // Auto-inspect on load
+        window.addEventListener('load', () => {
+            inspectIndexedDBsuccess = () => {
+                    document.getElementById('output').innerHTML = '<div class="success-box">✅ IndexedDB cleared successfully!</div>';
+                    document.getElementById('preview').innerHTML = '';
+                };
+                
+                request.onerror = () => {
+                    document.getElementById('output').innerHTML = `<div class="error-box">Error clearing IndexedDB: ${request.error}</div>`;
+                };
+            } catch (error) {
+                document.getElementById('output').innerHTML = `<div class="error-box">Error: ${error.message}</div>`;
+            }
+        }
+
+                    validCount++;
+                    previewHtml += `
+                        <div class="image-card">
+                            <img src="data:image/png;base64,${img.imageData}" 
+                                 alt="${img.prompt}"
+                                 onerror="this.parentElement.innerHTML='<div style=\\'height:150px;display:flex;align-items:center;justify-center;background:#fee2e2;color:#dc2626\\'>❌ Load failed</div>'">
+                            <div class="info">
+                                <strong>Image ${idx + 1}</strong><br>
+                                ${(img.imageData.length / 1024).toFixed(1)} KB
+                            </div>
+                        </div>
+                    `;
+                });
+
+                previewHtml += '</div>';
+                
+                let summaryHtml = '<div class="info-box">';
+                summaryHtml += `<span class="stat">✅ ${validCount} valid</span>`;
+                if (errorCount > 0) {
+                    summaryHtml += `<span class="stat" style="background:#fee2e2;color:#dc2626">❌ ${errorCount} errors</span>`;
+                }
+                summaryHtml += '</div>';
+                
+                output.innerHTML = summaryHtml;
+                preview.innerHTML = previewHtml;
+            } catch (error) {
+                output.innerHTML = `<div class="error-box">Error: ${error.message}</div>`;
+            }
+        }
+
+        function fixCorruptedData() {
+            const output = document.getElementById('output');
+            const stored = localStorage.getItem(STORAGE_KEY);
+            
+            if (!stored) {
+                output.innerHTML = '<div class="info-box">No history data found.</div>';
+                return;
+            }
+
+            try {
+                const data = JSON.parse(stored);
+                const beforeCount = data.length;
+                
+                // Remove images without valid imageData
+                const fixed = data.filter(img => {
+                    return img.imageData && 
+                           img.imageData.length > 100 && 
+                           /^[A-Za-z0-9+/=]+$/.test(img.imageData.substring(0, 100));
+                });
+                
+                const removedCount = beforeCount - fixed.length;
+                
+                if (removedCount === 0) {
+                    output.innerHTML = '<div class="success-box">✅ All images are valid! No fix needed.</div>';
+                    return;
+                }
+                
+                // Save fixed data
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(fixed));
+                
+                output.innerHTML = `
+                    <div class="success-box">
+                        ✅ Fixed successfully!<br>
+                        <strong>${removedCount}</strong> corrupted images removed.<br>
+                        <strong>${fixed.length}</strong> valid images kept.
+                    </div>
+                `;
+            } catch (error) {
+                output.innerHTML = `<div class="error-box">Error fixing data: ${error.message}</div>`;
+            }
+        }
+
+        function clearStorage() {
+            if (!confirm('⚠️ This will delete ALL generation history. Are you sure?')) {
+                return;
+            }
+            
+            localStorage.removeItem(STORAGE_KEY);
+            document.getElementById('output').innerHTML = '<div class="success-box">✅ History cleared successfully!</div>';
+            document.getElementById('preview').innerHTML = '';
+        }
+
+        // Auto-inspect on load
+        window.addEventListener('load', () => {
+            inspectStorage();
+        });
+    </script>
+</body>
+</html>

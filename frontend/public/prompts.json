@@ -1,0 +1,255 @@
+{
+  "qualityPresets": {
+    "fast": {
+      "name": "Fast",
+      "steps": 30,
+      "cfgScale": 8.0,
+      "description": "Recommended for most cases",
+      "estimatedTime": "12-15 seconds",
+      "useCase": "Quick iterations, general purpose",
+      "recommended": true
+    },
+    "balanced": {
+      "name": "Balanced",
+      "steps": 40,
+      "cfgScale": 8.5,
+      "description": "Higher quality for better results",
+      "estimatedTime": "17-20 seconds",
+      "useCase": "Production use, high quality outputs"
+    },
+    "premium": {
+      "name": "Premium",
+      "steps": 50,
+      "cfgScale": 9.0,
+      "description": "Maximum quality for final outputs",
+      "estimatedTime": "25-30 seconds",
+      "useCase": "Final outputs, portfolio pieces, maximum detail"
+    },
+    "ultra": {
+      "name": "Ultra",
+      "steps": 70,
+      "cfgScale": 9.5,
+      "description": "Absolute best quality (slower)",
+      "estimatedTime": "35-40 seconds",
+      "useCase": "Professional work, print quality, competitions"
+    }
+  },
+  
+  "promptCategories": [
+    {
+      "name": "Portrait",
+      "icon": "👤",
+      "examples": [
+        {
+          "title": "Professional Portrait",
+          "prompt": "professional portrait of a beautiful woman, detailed face, high quality, photorealistic, 8k uhd, studio lighting, sharp focus, physically-based rendering",
+          "negativePrompt": "ugly, deformed, disfigured, poor details, bad anatomy, lowres, low quality, blurry, distorted face, duplicate, mutated, extra limbs, bad proportions, (worst quality:1.4), (low quality:1.4), (bad hands:1.2), (missing fingers:1.2), (extra fingers:1.2), (bad anatomy:1.2), text, watermark, signature, logo",
+          "recommendedSteps": 30,
+          "recommendedCfg": 8.0
+        },
+        {
+          "title": "Natural Close-up",
+          "prompt": "close-up portrait of a young woman with natural beauty, detailed facial features, soft skin, professional studio lighting, shallow depth of field, bokeh background, photorealistic, high resolution",
+          "negativePrompt": "ugly, deformed face, bad anatomy, asymmetric face, bad eyes, crossed eyes, lazy eye, mutation, extra limbs, bad hands, poorly drawn face, distorted, blurry, low quality",
+          "recommendedSteps": 35,
+          "recommendedCfg": 8.0
+        },
+        {
+          "title": "Artistic Portrait",
+          "prompt": "artistic portrait, dramatic lighting, chiaroscuro, oil painting style, masterpiece quality, detailed brushwork, expressive face, professional photography",
+          "negativePrompt": "low quality, bad anatomy, distorted, blurry, amateur, poorly drawn",
+          "recommendedSteps": 35,
+          "recommendedCfg": 8.5
+        },
+        {
+          "title": "Headshot",
+          "prompt": "professional headshot, business portrait, confident expression, clean background, studio lighting, high resolution, corporate photography style",
+          "negativePrompt": "casual, messy, low quality, blurry, bad lighting, distorted",
+          "recommendedSteps": 30,
+          "recommendedCfg": 8.0
+        }
+      ]
+    },
+    {
+      "name": "Lifestyle",
+      "icon": "🌅",
+      "examples": [
+        {
+          "title": "Coffee Shop",
+          "prompt": "beautiful woman sitting in cozy coffee shop, holding coffee cup, natural window lighting, warm ambient atmosphere, soft bokeh background, casual lifestyle photography, detailed face and hands, photorealistic, 8k uhd, professional photography, sharp focus, physically-based rendering",
+          "negativePrompt": "dark, gloomy, low quality, blurry, bad anatomy, (bad hands:1.2), (extra fingers:1.2), (missing fingers:1.2), distorted face, deformed, (worst quality:1.4), duplicate, mutated, text, watermark",
+          "recommendedSteps": 35,
+          "recommendedCfg": 8.0
+        },
+        {
+          "title": "Urban Walk",
+          "prompt": "beautiful woman walking confidently in modern city street, stylish casual outfit, natural daylight, urban lifestyle, street photography style, candid moment, blurred background, detailed face and body proportions, photorealistic, 8k uhd, high quality, sharp focus, professional photography",
+          "negativePrompt": "low quality, blurry, (bad anatomy:1.2), dark, gloomy, (bad hands:1.2), (extra limbs:1.2), distorted face, deformed body, (worst quality:1.4), text, watermark, crowd",
+          "recommendedSteps": 35,
+          "recommendedCfg": 8.0
+        },
+        {
+          "title": "Home Lifestyle",
+          "prompt": "beautiful woman relaxing at home, cozy modern interior, natural soft window light, comfortable pose on sofa, warm atmosphere, lifestyle photography, detailed face and hands, warm color tones, photorealistic, 8k uhd, professional photography, shallow depth of field",
+          "negativePrompt": "messy, cluttered, low quality, dark, blurry, (bad anatomy:1.2), (bad hands:1.2), (deformed:1.2), (worst quality:1.4), distorted face, text, watermark",
+          "recommendedSteps": 35,
+          "recommendedCfg": 8.0
+        },
+        {
+          "title": "Outdoor Activity",
+          "prompt": "beautiful woman enjoying outdoor activity in nature, hiking or walking, natural park environment, golden hour lighting, lifestyle photography, energetic joyful mood, detailed face and body, photorealistic, 8k uhd, professional photography, natural colors, sharp focus",
+          "negativePrompt": "indoor, dark, low quality, blurry, bad weather, (bad anatomy:1.2), (bad hands:1.2), (extra limbs:1.2), distorted, (worst quality:1.4), text, watermark",
+          "recommendedSteps": 35,
+          "recommendedCfg": 8.0
+        }
+      ]
+    },
+    {
+      "name": "Sports & Fitness",
+      "icon": "⚽",
+      "examples": [
+        {
+          "title": "Gym Workout",
+          "prompt": "athletic woman working out in modern gym, fitness photography, dynamic exercise pose, focused determined expression, professional gym lighting, detailed athletic body proportions, correct anatomy, sports outfit, photorealistic, 8k uhd, high quality, sharp focus, professional sports photography",
+          "negativePrompt": "lazy, sitting, low quality, blurry, (bad anatomy:1.3), (bad body proportions:1.2), distorted, (extra limbs:1.2), (bad hands:1.2), deformed, (worst quality:1.4), text, watermark, amateur",
+          "recommendedSteps": 40,
+          "recommendedCfg": 8.5
+        },
+        {
+          "title": "Running",
+          "prompt": "athletic woman running in motion, outdoor trail or track, professional running apparel, dynamic powerful movement, action sports photography, golden hour natural lighting, detailed athletic body, correct anatomy, photorealistic, 8k uhd, motion capture style, professional sports photography, sharp focus",
+          "negativePrompt": "static, standing still, low quality, blurry, (bad anatomy:1.3), (bad proportions:1.2), (extra limbs:1.2), (bad hands:1.2), distorted, deformed, (worst quality:1.4), text, watermark",
+          "recommendedSteps": 40,
+          "recommendedCfg": 8.5
+        },
+        {
+          "title": "Yoga Practice",
+          "prompt": "beautiful woman practicing yoga, elegant graceful pose, balanced body position, serene studio environment, soft natural lighting, wellness lifestyle photography, peaceful calm atmosphere, detailed body anatomy, correct proportions, photorealistic, 8k uhd, professional photography, zen aesthetic",
+          "negativePrompt": "rushed, tense, low quality, blurry, (bad anatomy:1.3), (incorrect pose:1.2), (bad proportions:1.2), distorted, (extra limbs:1.2), deformed, (worst quality:1.4), text, watermark",
+          "recommendedSteps": 40,
+          "recommendedCfg": 8.5
+        },
+        {
+          "title": "Team Sports",
+          "prompt": "athletic woman playing team sport, dynamic action movement, sports field or court, competitive intense atmosphere, action sports photography, detailed athletic body, correct anatomy and proportions, professional sports outfit, photorealistic, 8k uhd, high quality, motion photography, sharp focus",
+          "negativePrompt": "static, boring, low quality, blurry, (bad anatomy:1.3), (bad proportions:1.2), (extra limbs:1.2), distorted, deformed, (worst quality:1.4), text, watermark, amateur",
+          "recommendedSteps": 40,
+          "recommendedCfg": 8.5
+        }
+      ]
+    },
+    {
+      "name": "Artistic",
+      "icon": "🎨",
+      "examples": [
+        {
+          "title": "Renaissance Style",
+          "prompt": "portrait in renaissance painting style, classical art, oil painting technique, rich colors, detailed brushwork, masterpiece quality, museum piece",
+          "negativePrompt": "modern, digital, low quality, amateur, simplistic",
+          "recommendedSteps": 40,
+          "recommendedCfg": 9.0
+        },
+        {
+          "title": "Impressionist",
+          "prompt": "impressionist style portrait, soft brush strokes, vibrant colors, natural outdoor lighting, artistic interpretation, painting style, high quality",
+          "negativePrompt": "photographic, realistic, low quality, harsh lines, dark",
+          "recommendedSteps": 35,
+          "recommendedCfg": 8.5
+        },
+        {
+          "title": "Pop Art",
+          "prompt": "pop art style portrait, bold colors, graphic design elements, andy warhol inspired, vibrant contrast, modern art style, high quality",
+          "negativePrompt": "dull colors, realistic, low quality, muddy, boring",
+          "recommendedSteps": 35,
+          "recommendedCfg": 8.5
+        },
+        {
+          "title": "Watercolor",
+          "prompt": "watercolor painting style, soft edges, translucent colors, artistic technique, delicate details, fine art quality",
+          "negativePrompt": "photographic, harsh, low quality, digital, artificial",
+          "recommendedSteps": 35,
+          "recommendedCfg": 8.5
+        }
+      ]
+    },
+    {
+      "name": "Sketch & Drawing",
+      "icon": "✏️",
+      "examples": [
+        {
+          "title": "Pencil Sketch",
+          "prompt": "detailed pencil sketch, graphite drawing, realistic shading, fine line work, artistic portrait, sketchy style, high quality, professional art",
+          "negativePrompt": "colored, painted, low quality, messy, amateur",
+          "recommendedSteps": 35,
+          "recommendedCfg": 8.0
+        },
+        {
+          "title": "Charcoal Drawing",
+          "prompt": "charcoal drawing, dramatic contrast, expressive strokes, dark and light values, artistic portrait, fine art quality",
+          "negativePrompt": "colored, photographic, low quality, unclear, messy",
+          "recommendedSteps": 35,
+          "recommendedCfg": 8.0
+        },
+        {
+          "title": "Ink Illustration",
+          "prompt": "ink illustration, line art, detailed pen work, cross-hatching technique, artistic portrait, high contrast, professional quality",
+          "negativePrompt": "colored, painted, low quality, blurry, amateur",
+          "recommendedSteps": 35,
+          "recommendedCfg": 8.5
+        },
+        {
+          "title": "Fashion Sketch",
+          "prompt": "fashion illustration sketch, elegant line work, stylized proportions, designer sketch style, professional fashion drawing, high quality",
+          "negativePrompt": "realistic photo, colored photo, low quality, messy",
+          "recommendedSteps": 30,
+          "recommendedCfg": 8.0
+        }
+      ]
+    },
+    {
+      "name": "Landscape & Nature",
+      "icon": "🏔️",
+      "examples": [
+        {
+          "title": "Mountain Sunset",
+          "prompt": "sunset over mountains, landscape photography, golden hour, dramatic lighting, high quality, photorealistic, 8k uhd, wide angle, professional photography",
+          "negativePrompt": "people, buildings, urban, low quality, blurry, distorted, overexposed, underexposed",
+          "recommendedSteps": 30,
+          "recommendedCfg": 7.5
+        },
+        {
+          "title": "Forest Path",
+          "prompt": "beautiful forest path with sunlight filtering through trees, nature photography, detailed foliage, photorealistic, 8k quality, serene atmosphere",
+          "negativePrompt": "people, buildings, urban, artificial, low quality, blurry, dark",
+          "recommendedSteps": 30,
+          "recommendedCfg": 7.5
+        },
+        {
+          "title": "Beach Scene",
+          "prompt": "pristine beach with turquoise water, tropical paradise, clear sky, landscape photography, vibrant colors, high quality, photorealistic",
+          "negativePrompt": "crowded, polluted, buildings, low quality, blurry, dull",
+          "recommendedSteps": 30,
+          "recommendedCfg": 7.5
+        },
+        {
+          "title": "Autumn Scenery",
+          "prompt": "autumn landscape with colorful fall foliage, nature photography, warm colors, scenic view, high quality, photorealistic",
+          "negativePrompt": "summer, green, people, urban, low quality, blurry",
+          "recommendedSteps": 30,
+          "recommendedCfg": 7.5
+        }
+      ]
+    }
+  ],
+
+  "tips": [
+    "Use 30+ steps for production quality (25-40 recommended)",
+    "CFG scale 7.5-8.5 works best for most cases",
+    "Include quality keywords: 'photorealistic', '8k', 'detailed'",
+    "Add lighting descriptions: 'studio lighting', 'soft lighting'",
+    "Use comprehensive negative prompts to avoid common issues",
+    "Seed value allows reproducing the same image",
+    "Higher steps = better quality but longer generation time",
+    "CFG scale controls how closely to follow the prompt"
+  ]
+}
